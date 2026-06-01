@@ -1,0 +1,66 @@
+import React from 'react'
+import { Link } from 'react-router-dom'
+import { useActivityFeed } from '../utils/activityFeed'
+
+export default function AdminDashboard({ currentUser, authReady }){
+  const activities = useActivityFeed()
+
+  if(!authReady) return <p>Checking session...</p>
+  if(!currentUser) return <p>Please log in as admin to access this page.</p>
+  if(currentUser.role !== 'admin') return <p>Insufficient permissions.</p>
+
+  const recentActivities = activities.slice(0, 4)
+
+  return (
+    <div className="page-shell">
+      <header className="page-hero">
+        <div>
+          <h2 className="page-title">Admin dashboard</h2>
+          <p className="page-subtitle">
+            Manage reports, view live updates, create accounts, and review recruiter requests from a calmer overview screen.
+          </p>
+        </div>
+        <div className="hero-actions">
+          <Link className="button" to="/admin/reports">Reports</Link>
+          <Link className="button button-secondary" to="/admin/updates">Updates</Link>
+          <Link className="button button-secondary" to="/admin/accounts">Accounts</Link>
+        </div>
+      </header>
+
+      <section className="section-grid">
+        <article className="card">
+          <h3>Reports</h3>
+          <p className="muted">Review reports in card form and remove them with the close button when they no longer need attention.</p>
+          <Link className="button" to="/admin/reports">Open reports</Link>
+        </article>
+        <article className="card">
+          <h3>Updates</h3>
+          <p className="muted">Follow application activity, admin notes, recruiter requests, and account events.</p>
+          <Link className="button" to="/admin/updates">Open updates</Link>
+        </article>
+        <article className="card">
+          <h3>Accounts</h3>
+          <p className="muted">Create new accounts and approve recruiter applications from one screen.</p>
+          <Link className="button" to="/admin/accounts">Open accounts</Link>
+        </article>
+      </section>
+
+      <section className="card">
+        <h3>Recent activity</h3>
+        {recentActivities.length === 0 ? (
+          <p className="muted">Nothing has been recorded yet. Activity will appear here as the UI is used.</p>
+        ) : (
+          <div className="record-grid">
+            {recentActivities.map((activity) => (
+              <article className="record-card" key={activity.id}>
+                <p className="record-kicker">{activity.type.replaceAll('-', ' ')}</p>
+                <h4>{activity.title || 'Update'}</h4>
+                <p className="record-summary">{activity.description || activity.note || 'No details were recorded.'}</p>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  )
+}
