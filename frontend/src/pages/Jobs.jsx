@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import api from '../api/client'
-import Modal from '../components/Modal'
+import { useNavigate } from 'react-router-dom'
 
 export default function Jobs({currentUser, authReady}){
   const [jobs, setJobs] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [showModal, setShowModal] = useState(false)
+  const navigate = useNavigate()
 
   useEffect(()=>{
     if(!authReady) return
@@ -15,8 +15,8 @@ export default function Jobs({currentUser, authReady}){
       setLoading(true)
       setError(null)
       try{
-        const endpoint = currentUser?.role === 'recruiter' ? '/jobs/me' : '/jobs'
-        const data = await api.getJSON(endpoint)
+        // Always load public jobs, no recruiter scope
+        const data = await api.getJSON('/jobs')
         setJobs(data)
       }catch(e){
         setError(e.payload || e.message || String(e))
@@ -26,57 +26,104 @@ export default function Jobs({currentUser, authReady}){
     }
 
     load()
-  },[currentUser, authReady])
+  },[authReady])
 
   if(loading) return <p>Loading jobs…</p>
   if(error) return <p>Error: {error}</p>
 
-  const role = currentUser?.role || 'guest'
-
-  const headerText = {
-    guest: 'Public jobs',
-    candidate: 'Public jobs',
-    recruiter: 'My jobs',
-    admin: 'Public jobs',
-  }[role]
-
   return (
-    <div>
-      <h2>{headerText}</h2>
-      {(role === 'guest' || role === 'candidate') && (
-        <p>Showing approved jobs only.</p>
-      )}
-      {role === 'recruiter' && (
-        <p>You are viewing your recruiter scope (including pending moderation jobs).</p>
-      )}
-      {role === 'recruiter' && <button onClick={()=>setShowModal(true)}>Add job</button>}
-      {jobs.length === 0 && <p>No jobs found (or backend not running).</p>}
-      <ul>
-        {jobs.map(job=> {
-          const isTerminated = job.moderation_status === 'terminated'
-          return (
-            <li key={job.id} style={isTerminated ? {background:'#ffecec', padding:8, borderRadius:4} : {}}>
-              <strong>{job.title}</strong> — {job.location || 'location N/A'}
-              <div>Job id: {job.id} | Company id: {job.company_id} | Status: {job.moderation_status}</div>
-              <div>Tags: {job.tags?.join(', ')}</div>
-            </li>
-          )
-        })}
-      </ul>
+    <div className="page-shell">
+      <header className="page-hero">
+        <div>
+          <h2 className="page-title">Available Positions</h2>
+          <p className="page-subtitle">
+            Explore approved job opportunities and apply to positions that match your profile.
+          </p>
+        </div>
+      </header>
 
-      {role === 'admin' && <AdminModerationPanel />}
-
-      {showModal && (
-        <Modal onClose={()=>setShowModal(false)}>
-          <JobForm
-            onCancel={()=>setShowModal(false)}
-            onCreated={async ()=>{
-              const data = await api.getJSON('/jobs/me')
-              setJobs(data)
-              setShowModal(false)
+      {jobs.length === 0 ? (
+        <p style={{textAlign: 'center', marginTop: 40}}>No jobs available at the moment.</p>
+      ) : (
+        <div className="jobs-grid" style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+          gap: '24px',
+          marginTop: 24
+        }}>
+          {jobs.map(job => (
+            <article key={job.id} className="job-card" style={{
+              background: '#fff',
+              border: '1px solid #e0e0e0',
+              borderRadius: '8px',
+              padding: '24px',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+              transition: 'all 0.2s ease',
+              cursor: 'pointer'
             }}
-          />
-        </Modal>
+            onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.12)'}
+            onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)'}
+            >
+              <h3 style={{margin: '0 0 8px 0', fontSize: '1.25rem', color: '#222'}}>
+                {job.title}
+              </h3>
+              <p style={{margin: '0 0 4px 0', color: '#999', fontSize: '0.85rem'}}>
+                Job ID: {job.id}
+              </p>
+              <p style={{margin: '0 0 16px 0', color: '#666', fontSize: '0.95rem'}}>
+                {job.location || 'Remote'}
+              </p>
+              
+              {job.employment_type && (
+                <p style={{margin: '0 0 12px 0', padding: '6px 12px', background: '#f0f0f0', borderRadius: '4px', fontSize: '0.9rem', width: 'fit-content'}}>
+                  {job.employment_type}
+                </p>
+              )}
+              
+              <p style={{
+                margin: '0 0 16px 0',
+                color: '#555',
+                fontSize: '0.9rem',
+                lineHeight: '1.5',
+                flex: 1
+              }}>
+                {job.description.substring(0, 150)}...
+              </p>
+
+              {job.tags && job.tags.length > 0 && (
+                <div style={{
+                  marginBottom: 16,
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '8px'
+                }}>
+                  {job.tags.slice(0, 4).map(tag => (
+                    <span key={tag} style={{
+                      background: '#e8f0ff',
+                      color: '#0066cc',
+                      padding: '4px 10px',
+                      borderRadius: '4px',
+                      fontSize: '0.85rem',
+                      fontWeight: 500
+                    }}>
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <button 
+                className="button"
+                onClick={() => navigate(`/candidate/applications?jobId=${job.id}`)}
+                style={{marginTop: 'auto'}}
+              >
+                Apply Now
+              </button>
+            </article>
+          ))}
+        </div>
       )}
     </div>
   )

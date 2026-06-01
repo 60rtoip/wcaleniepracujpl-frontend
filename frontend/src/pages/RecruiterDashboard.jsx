@@ -2,6 +2,12 @@ import React, { useEffect, useMemo, useState } from 'react'
 import api from '../api/client'
 import Modal from '../components/Modal'
 
+function proxiedPresignedUrl(url){
+  if(!import.meta.env.DEV) return url
+  const parsed = new URL(url)
+  return `${window.location.origin}/minio${parsed.pathname}${parsed.search}`
+}
+
 const APPLICATION_STATUS_OPTIONS = ['submitted', 'reviewing', 'rejected', 'accepted']
 
 const emptyJobForm = {
@@ -216,8 +222,24 @@ export default function RecruiterDashboard({ currentUser, authReady }){
     }
   }
 
+  async function downloadApplicationCV(applicationId){
+    try{
+      const resp = await api.get(`/applications/${applicationId}/cv-download`)
+      window.open(proxiedPresignedUrl(resp.download_url), '_blank')
+    }catch(err){
+      setError(normalizeError(err))
+    }
+  }
+
   async function saveApplicationStatus(applicationId){
     const status = applicationStatusDraft[applicationId]
+    const currentStatus = applications.find(app => app.id === applicationId)?.status
+    
+    // Don't make request if status hasn't changed
+    if(status === currentStatus){
+      return
+    }
+    
     try{
       await api.patchJSON(`/applications/${applicationId}/status`, { status })
       await loadApplications(selectedJobId)
@@ -304,31 +326,60 @@ export default function RecruiterDashboard({ currentUser, authReady }){
 
         {selectedJob && <p>Showing applications for {selectedJob.title}.</p>}
 
-        <ul>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {applications.map((application) => (
-            <li key={application.id} style={{ marginBottom: 12 }}>
-              <strong>Application #{application.id}</strong>
-              <div>Candidate user id: {application.candidate_user_id}</div>
-              <div>Cover letter: {application.cover_letter || 'No cover letter'}</div>
-              <div>CV: {application.cv_object_key ? 'Uploaded' : 'Not uploaded'}</div>
-              <div>Status: {application.status}</div>
-              <label style={{ display: 'block', marginTop: 8 }}>
-                Change status
-                <select
-                  value={applicationStatusDraft[application.id] || application.status}
-                  onChange={(event) => setApplicationStatusDraft((current) => ({ ...current, [application.id]: event.target.value }))}
-                >
-                  {APPLICATION_STATUS_OPTIONS.map((status) => (
-                    <option key={status} value={status}>{status}</option>
-                  ))}
-                </select>
-              </label>
-              <button type="button" onClick={() => saveApplicationStatus(application.id)} style={{ marginTop: 6 }}>
-                Save status
-              </button>
-            </li>
+            <div key={application.id} style={{ marginBottom: 16, padding: 16, border: '1px solid #e0e0e0', borderRadius: 4, background: '#fff' }}>
+              <div style={{ marginBottom: 12 }}>
+                <strong style={{ fontSize: '1.05rem' }}>Application #{application.id}</strong> — Candidate user ID: {application.candidate_user_id}
+              </div>
+              
+              <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
+                <strong>Status:</strong> <span style={{ color: '#0066cc', fontWeight: 600, padding: '4px 8px', background: '#f0f8ff', borderRadius: 4 }}>{application.status}</span>
+              </div>
+              
+              {application.cover_letter && (
+                <div style={{ marginBottom: 12, padding: 12, background: '#f9f9f9', borderRadius: 4, borderLeft: '3px solid #0066cc' }}>
+                  <strong>Cover Letter:</strong>
+                  <p style={{ margin: '8px 0 0 0', whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: '1.5' }}>
+                    {application.cover_letter}
+                  </p>
+                </div>
+              )}
+              
+              <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <strong>CV:</strong> {application.cv_object_key ? (
+                  <button
+                    type="button"
+                    onClick={() => downloadApplicationCV(application.id)}
+                    style={{ padding: '6px 12px', background: '#0066cc', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: '0.9rem' }}
+                  >
+                    Download CV
+                  </button>
+                ) : (
+                  <span style={{ color: '#999' }}>Not uploaded</span>
+                )}
+              </div>
+              
+              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
+                <label style={{ flex: 1 }}>
+                  <div style={{ marginBottom: 4, fontWeight: 600 }}>Change status</div>
+                  <select
+                    value={applicationStatusDraft[application.id] || application.status}
+                    onChange={(event) => setApplicationStatusDraft((current) => ({ ...current, [application.id]: event.target.value }))}
+                    style={{ width: '100%', padding: 6, borderRadius: 4, border: '1px solid #ccc' }}
+                  >
+                    {APPLICATION_STATUS_OPTIONS.map((status) => (
+                      <option key={status} value={status}>{status}</option>
+                    ))}
+                  </select>
+                </label>
+                <button type="button" onClick={() => saveApplicationStatus(application.id)} style={{ padding: '6px 16px', background: '#28a745', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: '0.9rem' }}>
+                  Save
+                </button>
+              </div>
+            </div>
           ))}
-        </ul>
+        </div>
       </section>
 
       {companyModalOpen && (

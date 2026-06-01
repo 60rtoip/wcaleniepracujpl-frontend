@@ -1,18 +1,24 @@
 import React, { useState } from 'react'
 import api from '../api/client'
+import { parseApiError } from '../utils/errorFormatter'
 
 export default function Register(){
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [msg, setMsg] = useState(null)
+  const [error, setError] = useState(null)
 
   const submit = async (e)=>{
     e.preventDefault()
     setMsg(null)
+    setError(null)
+    
     try{
       const data = await api.postJSON('/auth/register', { email, password })
       setMsg('Registered — user id: ' + (data?.id || 'unknown'))
-    }catch(e){ setMsg('Error: '+ e.message) }
+    }catch(e){ 
+      setError(parseApiError(e))
+    }
   }
 
   return (
@@ -23,7 +29,8 @@ export default function Register(){
         <label>Password<input type="password" value={password} onChange={e=>setPassword(e.target.value)} /></label>
         <button type="submit">Register</button>
       </form>
-      {msg && <p>{msg}</p>}
+      {msg && <p style={{color: '#28a745'}}>{msg}</p>}
+      {error && <p style={{color: '#dc3545'}}>{error}</p>}
     </div>
   )
 }

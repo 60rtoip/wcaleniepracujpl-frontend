@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import client from '../api/client'
 import Modal from '../components/Modal'
 import { appendActivity, formatTimestamp } from '../utils/activityFeed'
@@ -10,9 +11,11 @@ function proxiedPresignedUrl(url){
 }
 
 export default function CandidateApplications({ currentUser }){
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [applications, setApplications] = useState([])
   const [loading, setLoading] = useState(false)
-  const [jobId, setJobId] = useState('')
+  const [jobId, setJobId] = useState(searchParams.get('jobId') || '')
   const [coverLetter, setCoverLetter] = useState('')
   const [file, setFile] = useState(null)
   const [history, setHistory] = useState(null)
@@ -21,6 +24,15 @@ export default function CandidateApplications({ currentUser }){
   const [recruiterCompany, setRecruiterCompany] = useState('')
   const [recruiterMotivation, setRecruiterMotivation] = useState('')
   const [recruiterMessage, setRecruiterMessage] = useState(null)
+
+  // Protect route: only candidates can access
+  useEffect(() => {
+    if (!currentUser) {
+      navigate('/login', { replace: true })
+    } else if (currentUser.role !== 'candidate') {
+      navigate('/', { replace: true })
+    }
+  }, [currentUser, navigate])
 
   async function fetchMyApps(){
     setLoading(true)
@@ -144,7 +156,7 @@ export default function CandidateApplications({ currentUser }){
             </label>
             <label>
               Cover letter
-              <input value={coverLetter} onChange={(event) => setCoverLetter(event.target.value)} />
+              <textarea value={coverLetter} onChange={(event) => setCoverLetter(event.target.value)} rows="6" placeholder="Write your cover letter here..." />
             </label>
             <label>
               CV file

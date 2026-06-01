@@ -50,12 +50,27 @@ export default function AdminDashboard({ currentUser, authReady }){
         {recentActivities.length === 0 ? (
           <p className="muted">Nothing has been recorded yet. Activity will appear here as the UI is used.</p>
         ) : (
-          <div className="record-grid">
-            {recentActivities.map((activity) => (
-              <article className="record-card" key={activity.id}>
-                <p className="record-kicker">{activity.type.replaceAll('-', ' ')}</p>
-                <h4>{activity.title || 'Update'}</h4>
-                <p className="record-summary">{activity.description || activity.note || 'No details were recorded.'}</p>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px'
+          }}>
+            {recentActivities.slice(0, 3).map((activity) => (
+              <article key={activity.id} style={{
+                padding: '16px',
+                background: '#f9f9f9',
+                borderLeft: '4px solid #0066cc',
+                borderRadius: '4px'
+              }}>
+                <p style={{margin: '0 0 4px 0', fontSize: '0.9rem', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px'}}>
+                  {activity.type.replaceAll('-', ' ')}
+                </p>
+                <h4 style={{margin: '4px 0'}}>
+                  {activity.title || 'Update'}
+                </h4>
+                <p style={{margin: 0, fontSize: '0.95rem', color: '#555'}}>
+                  {activity.description || activity.note || 'No details were recorded.'}
+                </p>
               </article>
             ))}
           </div>

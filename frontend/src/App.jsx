@@ -54,31 +54,35 @@ export default function App(){
 
   return (
     <div>
-      <nav className="nav">
-        <Link to="/">Home</Link>
-        <Link to="/jobs">Jobs</Link>
-        {user && user.role === 'candidate' && <Link to="/candidate/applications">My applications</Link>}
-        {user && user.role === 'recruiter' && <Link to="/recruiter">Recruiter dashboard</Link>}
-        {user && user.role === 'admin' && <Link to="/admin">Admin dashboard</Link>}
+      <nav className="nav" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 24px', background: '#fff', borderBottom: '1px solid #e0e0e0'}}>
+        <div style={{display: 'flex', gap: '24px', alignItems: 'center'}}>
+          <Link to="/" style={{fontWeight: 600, textDecoration: 'none', color: '#222'}}>Home</Link>
+          <Link to="/jobs" style={{textDecoration: 'none', color: '#0066cc'}}>Jobs</Link>
+          {user && user.role === 'candidate' && <Link to="/candidate/applications" style={{textDecoration: 'none', color: '#0066cc'}}>My applications</Link>}
+          {user && user.role === 'recruiter' && <Link to="/recruiter" style={{textDecoration: 'none', color: '#0066cc'}}>Recruiter dashboard</Link>}
+          {user && user.role === 'admin' && <Link to="/admin" style={{textDecoration: 'none', color: '#0066cc'}}>Admin dashboard</Link>}
+          {user && <Link to="/reports/new" style={{textDecoration: 'none', color: '#0066cc'}}>Report job</Link>}
+          {user?.role === 'admin' && <Link to="/admin/reports" style={{textDecoration: 'none', color: '#0066cc'}}>Reports</Link>}
+          {user?.role === 'admin' && <Link to="/admin/updates" style={{textDecoration: 'none', color: '#0066cc'}}>Updates</Link>}
+          {user?.role === 'admin' && <Link to="/admin/accounts" style={{textDecoration: 'none', color: '#0066cc'}}>Accounts</Link>}
+        </div>
 
-        {user ? (
-          <>
-            <span className="user-chip" style={{marginLeft:12}}>
-              {user.email}
-              {roleLabel && <span className={`role-badge role-${user.role}`}>{roleLabel}</span>}
-            </span>
-            <button style={{marginLeft:8}} onClick={logout}>Logout</button>
-            <Link to="/reports/new" style={{marginLeft:8}}>Report job</Link>
-            {user?.role === 'admin' && <Link to="/admin/reports" style={{marginLeft:8}}>Reports</Link>}
-            {user?.role === 'admin' && <Link to="/admin/updates" style={{marginLeft:8}}>Updates</Link>}
-            {user?.role === 'admin' && <Link to="/admin/accounts" style={{marginLeft:8}}>Accounts</Link>}
-          </>
-        ) : (
-          <>
-            <Link to="/login">Login</Link>
-            <Link to="/register">Register</Link>
-          </>
-        )}
+        <div style={{display: 'flex', gap: '16px', alignItems: 'center'}}>
+          {user ? (
+            <>
+              <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                <span style={{fontSize: '0.9rem', color: '#666'}}>{user.email}</span>
+                {roleLabel && <span className={`role-badge role-${user.role}`} style={{padding: '4px 8px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 600}}>{roleLabel}</span>}
+              </div>
+              <button onClick={logout} style={{padding: '8px 16px', background: '#f0f0f0', border: '1px solid #d0d0d0', borderRadius: '4px', cursor: 'pointer', fontSize: '0.95rem'}}>Logout</button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" style={{textDecoration: 'none', color: '#0066cc'}}>Login</Link>
+              <Link to="/register" style={{textDecoration: 'none', color: '#0066cc'}}>Register</Link>
+            </>
+          )}
+        </div>
       </nav>
       <main className="container">
         {!authReady ? (
