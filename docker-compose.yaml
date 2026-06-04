@@ -25,6 +25,16 @@ services:
       retries: 5
       start_period: 20s
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: jobboard_frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+
   worker:
     build:
       context: .

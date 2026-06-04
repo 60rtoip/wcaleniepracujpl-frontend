@@ -20,11 +20,6 @@ export default function AdminDashboard({ currentUser, authReady }){
             Manage reports, view live updates, create accounts, and review recruiter requests from a calmer overview screen.
           </p>
         </div>
-        <div className="hero-actions">
-          <Link className="button" to="/admin/reports">Reports</Link>
-          <Link className="button button-secondary" to="/admin/updates">Updates</Link>
-          <Link className="button button-secondary" to="/admin/accounts">Accounts</Link>
-        </div>
       </header>
 
       <section className="section-grid">

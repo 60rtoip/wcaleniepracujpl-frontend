@@ -1,24 +1,20 @@
 import { defineConfig } from 'vite'
 
-// Dev proxy: forwards `/api` requests from the dev server to the backend on :8000
 export default defineConfig({
   server: {
+    host: true, // żeby działało w Dockerze
+    port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://api:8000', // ✅ było localhost
         changeOrigin: true,
         secure: false,
       },
       '/minio': {
-        target: 'http://localhost:9000',
+        target: 'http://minio:9000', // ✅ było localhost
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/minio/, ''),
-        configure: (proxy) => {
-          proxy.on('proxyReq', (proxyReq) => {
-            proxyReq.setHeader('host', 'minio:9000')
-          })
-        },
       },
     },
   },

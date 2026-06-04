@@ -108,7 +108,7 @@ button{
 	font-weight:700;
 	padding:.7rem 1rem;
 	cursor:pointer;
-	transition:transform .15s ease, background .15s ease, box-shadow .15s ease;
+	transition:transform .15s ease, box-shadow .15s ease;
 }
 
 .button:hover,

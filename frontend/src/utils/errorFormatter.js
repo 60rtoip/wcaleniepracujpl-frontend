@@ -1,7 +1,4 @@
-/**
- * Parse API error response according to error-handling.md standards
- * Handles string detail, validation arrays, and structured errors
- */
+
 export function parseApiError(error) {
   // Handle network errors
   if (error instanceof TypeError) {
@@ -35,9 +32,6 @@ export function parseApiError(error) {
   return 'An unexpected error occurred'
 }
 
-/**
- * Format validation array errors for display
- */
 export function formatValidationErrors(validationArray) {
   if (!Array.isArray(validationArray)) {
     return validationArray

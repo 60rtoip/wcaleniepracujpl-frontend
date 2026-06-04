@@ -15,7 +15,6 @@ export default function Jobs({currentUser, authReady}){
       setLoading(true)
       setError(null)
       try{
-        // Always load public jobs, no recruiter scope
         const data = await api.getJSON('/jobs')
         setJobs(data)
       }catch(e){

@@ -38,8 +38,8 @@ export default function Home({user}){
 
   return (
     <div>
-      <h1>Job Board — Demo Frontend</h1>
-      <p>This UI adapts to your account role.</p>
+      <h1>Wcaleniepracuj.pl</h1>
+      <p>The best site for job finding!</p>
 
       <section className="role-panel">
         <h2>{info.title}</h2>

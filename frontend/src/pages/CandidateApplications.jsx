@@ -25,7 +25,6 @@ export default function CandidateApplications({ currentUser }){
   const [recruiterMotivation, setRecruiterMotivation] = useState('')
   const [recruiterMessage, setRecruiterMessage] = useState(null)
 
-  // Protect route: only candidates can access
   useEffect(() => {
     if (!currentUser) {
       navigate('/login', { replace: true })
@@ -51,7 +50,6 @@ export default function CandidateApplications({ currentUser }){
     try{
       const resp = await client.postJSON('/applications/cv-presign', { filename: file.name })
       const uploadUrl = proxiedPresignedUrl(resp.upload_url)
-      // upload to presigned URL
       await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type || 'application/octet-stream' } })
       return resp.object_key
     }catch(err){
@@ -129,7 +127,6 @@ export default function CandidateApplications({ currentUser }){
   async function handleCvDownload(application){
     try{
       const resp = await client.get(`/applications/${application.id}/cv-download`)
-      // resp.download_url
       window.open(proxiedPresignedUrl(resp.download_url), '_blank')
     }catch(err){
       console.error('cv-download', err)

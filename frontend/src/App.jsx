@@ -74,7 +74,7 @@ export default function App(){
                 <span style={{fontSize: '0.9rem', color: '#666'}}>{user.email}</span>
                 {roleLabel && <span className={`role-badge role-${user.role}`} style={{padding: '4px 8px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 600}}>{roleLabel}</span>}
               </div>
-              <button onClick={logout} style={{padding: '8px 16px', background: '#f0f0f0', border: '1px solid #d0d0d0', borderRadius: '4px', cursor: 'pointer', fontSize: '0.95rem'}}>Logout</button>
+              <button onClick={logout} style={{padding: '8px 16px', background: '#123246', border: '1px solid #d0d0d0', borderRadius: '4px', cursor: 'pointer', fontSize: '0.95rem'}}>Logout</button>
             </>
           ) : (
             <>
