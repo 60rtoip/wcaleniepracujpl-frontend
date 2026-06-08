@@ -13,7 +13,6 @@ FROM nginx:alpine
 
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# ✅ SPA fix (React routing)
 RUN printf 'server {\
   listen 80;\
   location / {\
