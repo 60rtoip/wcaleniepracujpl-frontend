@@ -54,27 +54,113 @@ export default function App(){
 
   return (
     <div>
-      <nav className="nav" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 24px', background: '#fff', borderBottom: '1px solid #e0e0e0'}}>
+      <nav
+        className="nav"
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '12px 24px',
+          background: '#fff',
+          borderBottom: '1px solid #e0e0e0'
+        }}
+      >
         <div style={{display: 'flex', gap: '24px', alignItems: 'center'}}>
           <Link to="/" style={{fontWeight: 600, textDecoration: 'none', color: '#222'}}>Home</Link>
           <Link to="/jobs" style={{textDecoration: 'none', color: '#0066cc'}}>Jobs</Link>
-          {user && user.role === 'candidate' && <Link to="/candidate/applications" style={{textDecoration: 'none', color: '#0066cc'}}>My applications</Link>}
-          {user && user.role === 'recruiter' && <Link to="/recruiter" style={{textDecoration: 'none', color: '#0066cc'}}>Recruiter dashboard</Link>}
-          {user && user.role === 'admin' && <Link to="/admin" style={{textDecoration: 'none', color: '#0066cc'}}>Admin dashboard</Link>}
-          {user && <Link to="/reports/new" style={{textDecoration: 'none', color: '#0066cc'}}>Report job</Link>}
-          {user?.role === 'admin' && <Link to="/admin/reports" style={{textDecoration: 'none', color: '#0066cc'}}>Reports</Link>}
-          {user?.role === 'admin' && <Link to="/admin/updates" style={{textDecoration: 'none', color: '#0066cc'}}>Updates</Link>}
-          {user?.role === 'admin' && <Link to="/admin/accounts" style={{textDecoration: 'none', color: '#0066cc'}}>Accounts</Link>}
+
+          {user && user.role === 'candidate' && (
+            <Link to="/candidate/applications" style={{textDecoration: 'none', color: '#0066cc'}}>
+              My applications
+            </Link>
+          )}
+
+          {user && user.role === 'recruiter' && (
+            <Link to="/recruiter" style={{textDecoration: 'none', color: '#0066cc'}}>
+              Recruiter dashboard
+            </Link>
+          )}
+
+          {user && user.role === 'admin' && (
+            <Link to="/admin" style={{textDecoration: 'none', color: '#0066cc'}}>
+              Admin dashboard
+            </Link>
+          )}
+
+          {user && (
+            <Link to="/reports/new" style={{textDecoration: 'none', color: '#0066cc'}}>
+              Report job
+            </Link>
+          )}
+
+          {user?.role === 'admin' && (
+            <Link to="/admin/reports" style={{textDecoration: 'none', color: '#0066cc'}}>
+              Reports
+            </Link>
+          )}
+
+          {user?.role === 'admin' && (
+            <Link to="/admin/updates" style={{textDecoration: 'none', color: '#0066cc'}}>
+              Updates
+            </Link>
+          )}
+
+          {user?.role === 'admin' && (
+            <Link to="/admin/accounts" style={{textDecoration: 'none', color: '#0066cc'}}>
+              Accounts
+            </Link>
+          )}
         </div>
 
         <div style={{display: 'flex', gap: '16px', alignItems: 'center'}}>
           {user ? (
             <>
-              <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                <span style={{fontSize: '0.9rem', color: '#666'}}>{user.email}</span>
-                {roleLabel && <span className={`role-badge role-${user.role}`} style={{padding: '4px 8px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 600}}>{roleLabel}</span>}
+              <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                <span style={{fontSize: '0.9rem', color: '#666'}}>
+                  {user.email}
+                </span>
+
+                {roleLabel && (
+                  <span
+                    className={`role-badge role-${user.role}`}
+                    style={{
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      fontSize: '0.85rem',
+                      fontWeight: 600
+                    }}
+                  >
+                    {roleLabel}
+                  </span>
+                )}
+
+                <span
+                  style={{
+                    fontSize: '0.75rem',
+                    color: '#555',
+                    background: '#f2f2f2',
+                    padding: '2px 6px',
+                    borderRadius: '4px'
+                  }}
+                >
+                  #{user.id}
+                </span>
               </div>
-              <button onClick={logout} style={{padding: '8px 16px', background: '#123246', border: '1px solid #d0d0d0', borderRadius: '4px', cursor: 'pointer', fontSize: '0.95rem'}}>Logout</button>
+
+              <button
+                onClick={logout}
+                style={{
+                  padding: '8px 16px',
+                  background: '#123246',
+                  border: '1px solid #d0d0d0',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '0.95rem',
+                  color: '#fff'
+                }}
+              >
+                Logout
+              </button>
             </>
           ) : (
             <>
@@ -84,6 +170,7 @@ export default function App(){
           )}
         </div>
       </nav>
+
       <main className="container">
         {!authReady ? (
           <p>Checking session...</p>

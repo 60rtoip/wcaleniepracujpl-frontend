@@ -33,6 +33,9 @@ export default function Jobs({currentUser, authReady}){
   return (
     <div className="page-shell">
       <header className="page-hero">
+        {currentUser?.role === 'admin' && (
+          <AdminModerationPanel />
+        )}
         <div>
           <h2 className="page-title">Available Positions</h2>
           <p className="page-subtitle">

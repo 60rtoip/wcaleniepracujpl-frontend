@@ -34,15 +34,31 @@ export default function AdminAccounts({ currentUser, authReady }){
 
     try{
       if(role !== 'candidate' && !canUseRoleRegistration){
-        appendActivity({
-          type: 'account-request',
-          status: 'pending',
-          title: `${role} account request queued locally`,
-          description: `Requested account for ${email}. Backend role-specific registration is only available in development.`,
-          note: `Full name: ${fullName || 'n/a'}`,
-          metadata: { email, role },
+        const command = `docker compose exec api python -c "
+from app.db.session import SessionLocal
+from app.models.user import User
+from app.core.security import hash_password
+
+db = SessionLocal()
+
+u = User(
+    email='${email}',
+    hashed_password=hash_password('${password}'),
+    role='${role}'
+)
+
+db.add(u)
+db.commit()
+db.close()
+
+print(' ${role} account created')
+"`
+
+        setFeedback({
+          type: 'manual',
+          message: `Account creation for "${role}" is not available in this environment.\n\nRun the following command in your terminal to create the account:`,
+          command
         })
-        setFeedback('Role-specific account creation is only available in development, so the request was queued locally.')
         return
       }
 
@@ -52,11 +68,13 @@ export default function AdminAccounts({ currentUser, authReady }){
         password,
         full_name: fullName || null,
       }
+
       if(endpoint === '/auth/register-test'){
         payload.role = role
       }
 
       const createdUser = await api.postJSON(endpoint, payload)
+
       appendActivity({
         type: 'account-created',
         status: 'completed',
@@ -67,13 +85,22 @@ export default function AdminAccounts({ currentUser, authReady }){
           role: createdUser.role,
         },
       })
-      setFeedback(`Created ${createdUser.role} account for ${createdUser.email}.`)
+
+      setFeedback({
+        type: 'success',
+        message: `Created ${createdUser.role} account for ${createdUser.email}.`
+      })
+
       setEmail('')
       setPassword('')
       setFullName('')
       setRole('candidate')
+
     }catch(error){
-      setFeedback(normalizeError(error))
+      setFeedback({
+        type: 'error',
+        message: normalizeError(error)
+      })
     }finally{
       setSubmitting(false)
     }
@@ -81,12 +108,14 @@ export default function AdminAccounts({ currentUser, authReady }){
 
   async function approveRecruiterApplication(application){
     const reviewNote = reviewNotes[application.id] || ''
+
     updateActivity(application.id, {
       status: 'approved',
       note: reviewNote || application.note || null,
       reviewed_by: currentUser.email,
       reviewed_at: new Date().toISOString(),
     })
+
     appendActivity({
       type: 'recruiter-application-approved',
       status: 'completed',
@@ -95,17 +124,20 @@ export default function AdminAccounts({ currentUser, authReady }){
       note: reviewNote || 'Approved from the admin account page.',
       metadata: application.metadata || {},
     })
+
     setReviewNotes((current) => ({ ...current, [application.id]: '' }))
   }
 
   async function rejectRecruiterApplication(application){
     const reviewNote = reviewNotes[application.id] || ''
+
     updateActivity(application.id, {
       status: 'rejected',
       note: reviewNote || application.note || null,
       reviewed_by: currentUser.email,
       reviewed_at: new Date().toISOString(),
     })
+
     appendActivity({
       type: 'recruiter-application-rejected',
       status: 'completed',
@@ -114,6 +146,7 @@ export default function AdminAccounts({ currentUser, authReady }){
       note: reviewNote || 'Rejected from the admin account page.',
       metadata: application.metadata || {},
     })
+
     setReviewNotes((current) => ({ ...current, [application.id]: '' }))
   }
 
@@ -131,19 +164,23 @@ export default function AdminAccounts({ currentUser, authReady }){
       <div className="section-grid">
         <section className="card">
           <h3>Create account</h3>
+
           <form className="stack-form" onSubmit={createAccount}>
             <label>
               Email
               <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required />
             </label>
+
             <label>
               Full name
               <input value={fullName} onChange={(event) => setFullName(event.target.value)} />
             </label>
+
             <label>
               Password
               <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" required minLength={8} />
             </label>
+
             <label>
               Role
               <select value={role} onChange={(event) => setRole(event.target.value)}>
@@ -152,16 +189,39 @@ export default function AdminAccounts({ currentUser, authReady }){
                 <option value="admin">Admin</option>
               </select>
             </label>
+
             {!canUseRoleRegistration && (
-              <p className="muted">Role-specific account creation is limited to development mode. Candidate accounts still use the normal registration endpoint.</p>
+              <p className="muted">
+                Role-specific account creation is limited outside development mode.
+              </p>
             )}
-            <button className="button" type="submit" disabled={submitting}>{submitting ? 'Creating…' : 'Create account'}</button>
-            {feedback && <p className="feedback">{feedback}</p>}
+
+            <button className="button" type="submit" disabled={submitting}>
+              {submitting ? 'Creating…' : 'Create account'}
+            </button>
           </form>
+
+          {feedback && feedback.type === 'manual' && (
+            <div className="feedback-box">
+              <p>{feedback.message}</p>
+              <pre className="feedback-code">
+{feedback.command}
+              </pre>
+            </div>
+          )}
+
+          {feedback && feedback.type === 'success' && (
+            <p className="feedback success">{feedback.message}</p>
+          )}
+
+          {feedback && feedback.type === 'error' && (
+            <p className="feedback error">{feedback.message}</p>
+          )}
         </section>
 
         <section className="card">
           <h3>Recruiter applications</h3>
+
           {recruiterApplications.length === 0 ? (
             <p className="muted">No pending recruiter applications right now.</p>
           ) : (
@@ -175,31 +235,35 @@ export default function AdminAccounts({ currentUser, authReady }){
                     </div>
                     <span className="status-pill status-pill--pending">pending</span>
                   </div>
+
                   <p className="record-summary">{application.description}</p>
-                  {application.note && <div className="note-box"><strong>Applicant note</strong><p>{application.note}</p></div>}
-                  {application.metadata && Object.keys(application.metadata).length > 0 && (
-                    <dl className="metadata-grid">
-                      {Object.entries(application.metadata).map(([key, value]) => (
-                        <div key={key}>
-                          <dt>{key.replaceAll('_', ' ')}</dt>
-                          <dd>{String(value)}</dd>
-                        </div>
-                      ))}
-                    </dl>
-                  )}
+
                   <label className="stack-field">
                     Admin note
                     <textarea
                       value={reviewNotes[application.id] || ''}
-                      onChange={(event) => setReviewNotes((current) => ({ ...current, [application.id]: event.target.value }))}
+                      onChange={(event) =>
+                        setReviewNotes((current) => ({
+                          ...current,
+                          [application.id]: event.target.value
+                        }))
+                      }
                       rows="3"
                     />
                   </label>
+
                   <div className="record-actions">
-                    <button className="button" type="button" onClick={() => approveRecruiterApplication(application)}>Approve</button>
-                    <button className="button button-danger" type="button" onClick={() => rejectRecruiterApplication(application)}>Reject</button>
+                    <button className="button" onClick={() => approveRecruiterApplication(application)}>
+                      Approve
+                    </button>
+                    <button className="button button-danger" onClick={() => rejectRecruiterApplication(application)}>
+                      Reject
+                    </button>
                   </div>
-                  <div className="record-footer">{formatTimestamp(application.createdAt)}</div>
+
+                  <div className="record-footer">
+                    {formatTimestamp(application.createdAt)}
+                  </div>
                 </article>
               ))}
             </div>
